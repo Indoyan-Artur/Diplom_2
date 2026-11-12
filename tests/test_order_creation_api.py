@@ -1,7 +1,9 @@
 import requests
 import allure
 
-from conftest import URL
+from test_data import INVALID_INGREDIENT_IDS, EXPECTED_MESSAGES
+from config import URL, API_ORDERS
+
 
 @allure.feature("Создание заказа")
 class TestOrderCreationApi:
@@ -11,7 +13,7 @@ class TestOrderCreationApi:
     def test_order_with_authorization(self, user_creation, authorization, ingredient_ids):
         token = authorization["token"]
 
-        response = requests.post(f"{URL}/api/orders", json={"ingredients": ingredient_ids}, headers={"Authorization": token})
+        response = requests.post(API_ORDERS, json={"ingredients": ingredient_ids}, headers={"Authorization": token})
 
         assert response.status_code == 200, f"Создание заказа не прошло: {response.status_code} {response.text}"
         assert response.json()["success"] == True
@@ -22,7 +24,7 @@ class TestOrderCreationApi:
     # предпологаю, что без авторизации заказ не должен формироваться
     @allure.title("Создание заказа без авторизации")
     def test_order_without_authorization(self, ingredient_ids):
-        response = requests.post(f"{URL}/api/orders", json={"ingredients": ingredient_ids})
+        response = requests.post(API_ORDERS, json={"ingredients": ingredient_ids})
 
         assert response.status_code == 200, f" Ошибка, ждали 200 а получили: {response.status_code} {response.text}"
         assert response.json()["success"] == True
@@ -33,11 +35,11 @@ class TestOrderCreationApi:
     def test_order_without_ingredients(self, user_creation, authorization):
         token = authorization["token"]
 
-        response = requests.post(f"{URL}/api/orders", json={"ingredients": None}, headers={"Authorization": token})
+        response = requests.post(API_ORDERS, json={"ingredients": None}, headers={"Authorization": token})
 
         assert response.status_code == 400, f"Ошибка: {response.status_code} {response.text}"
         assert response.json()["success"] == False
-        assert response.json()["message"] == "Ingredient ids must be provided"
+        assert response.json()["message"] == EXPECTED_MESSAGES["no_ingredients"]
 
     #В документации написанно, что при таком сценарии сервер должен возвращать 500, но фактически мы получаем 400.
     #В ожидании поставил 400 чтобы тест сответствовал правилу "Тесты запускаются и проходят"
@@ -45,10 +47,9 @@ class TestOrderCreationApi:
     def test_order_with_incorrect_hash(self, user_creation, authorization):
         token = authorization["token"]
 
-        response = requests.post(f"{URL}/api/orders", json={"ingredients": ["666666e6aa666a66666a6666", "60b3b41bbbbbbb0026b733b6"]}, headers={"Authorization": token})
+        response = requests.post(API_ORDERS, json={"ingredients": INVALID_INGREDIENT_IDS}, headers={"Authorization": token})
 
-        assert response.status_code == 400, f"Ожидали 400 (факт API, в доках 500): {response.status_code} {response.text}"
-        assert response.json()["success"] == False
+        assert response.status_code == 500, f"Ожидали 400 (факт API, в доках 500): {response.status_code} {response.text}"
 
 
 

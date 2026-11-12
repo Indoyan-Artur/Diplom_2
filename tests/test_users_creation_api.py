@@ -1,7 +1,8 @@
 import requests
 import allure
 
-from conftest import URL, DISPOSABLE_PASSWORD, NAME
+from test_data import DISPOSABLE_PASSWORD, NAME
+from config import API_REGISTER
 
 
 @allure.feature("Регистрация пользователя")
@@ -22,7 +23,7 @@ class TestUsersCreationApi:
             "name": NAME
         }
 
-        response = requests.post(f'{URL}/api/auth/register', json=body)
+        response = requests.post(API_REGISTER, json=body)
        
         assert response.status_code == 403, (f"Создание прошло: {response.status_code} {response.text}")
         assert response.json()["success"] is False
@@ -36,7 +37,7 @@ class TestUsersCreationApi:
             "name": NAME
         }
 
-        response = requests.post(f'{URL}/api/auth/register', json=body)
+        response = requests.post(API_REGISTER, json=body)
        
         assert response.status_code == 403, (f"Создание не прошло: {response.status_code} {response.text}")
         assert response.json()["success"] is False

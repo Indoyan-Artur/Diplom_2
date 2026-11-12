@@ -1,6 +1,7 @@
 import requests
 import allure
-from conftest import URL
+
+from config import URL, API_AUTH_LOGIN
 
 
 @allure.feature("Авторизация пользователя")
@@ -20,7 +21,7 @@ class TestUserLoginApi:
         "email": "ivanov@yandex.ru",
         "password": 6447456456
         }
-        response = requests.post(f'{URL}/api/auth/login', json=body)
+        response = requests.post(API_AUTH_LOGIN, json=body)
 
         assert response.status_code == 401, f"Ждали 401: {response.status_code} {response.text}" 
         assert response.json()["success"] == False 
